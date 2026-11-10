@@ -11,21 +11,42 @@
 // usando multer com diskStorage. Não utilize provedores externos.
 
 const express = require('express');
+const config = require('./config');
+const documentsRouter = require('./routes/documents.routes');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-// Endpoint de verificação de saúde. As demais rotas (/upload, /documents,
-// /documents/:id/download) serão implementadas durante o Passo 2.
+// Endpoint de verificação de saúde.
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+app.use(documentsRouter);
+
+// Erros não tratados pelos controllers: mantém o formato JSON padrão da API.
+app.use((error, req, res, next) => {
+  if (res.headersSent) {
+    return next(error);
+  }
+
+  const status = error.status || error.statusCode || 500;
+  if (status >= 500) {
+    console.error(error);
+    return res.status(500).json({
+      error: { code: 'INTERNAL_ERROR', message: 'Erro interno do servidor.' },
+    });
+  }
+
+  return res.status(status).json({
+    error: { code: 'BAD_REQUEST', message: 'Requisição inválida.' },
+  });
+});
+
 if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`DMS backend ouvindo na porta ${PORT}`);
+  app.listen(config.port, () => {
+    console.log(`DMS backend ouvindo na porta ${config.port}`);
   });
 }
 
