@@ -65,7 +65,15 @@ async function uploadDocument(req, res, next) {
   }
 
   try {
-    const document = await documentsService.createDocument(req.file, getOwner(req));
+    const document = documentsService.createDocument(
+      {
+        originalName: req.file.originalname,
+        size: req.file.size,
+        mimeType: req.file.mimetype,
+        storedName: req.file.filename,
+      },
+      getOwner(req)
+    );
     return res.status(201).json({ document });
   } catch (error) {
     return handleServiceError(error, res, next);
