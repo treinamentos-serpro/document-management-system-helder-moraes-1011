@@ -33,7 +33,16 @@ function findAllByOwner(owner) {
 }
 
 function getFilePath(storedName) {
-  return path.join(config.storageDir, storedName);
+  const filePath = path.resolve(config.storageDir, storedName);
+  const relativePath = path.relative(config.storageDir, filePath);
+  if (
+    relativePath === '..' ||
+    relativePath.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relativePath)
+  ) {
+    throw new Error('Invalid stored file name.');
+  }
+  return filePath;
 }
 
 async function fileExists(storedName) {
