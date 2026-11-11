@@ -16,25 +16,18 @@ function toPublicDocument(document) {
   };
 }
 
-async function createDocument(file, owner) {
+function createDocument(file, owner) {
   const document = {
     id: randomUUID(),
-    originalName: file.originalname,
+    originalName: file.originalName,
     size: file.size,
     uploadedAt: new Date().toISOString(),
     owner,
-    mimeType: file.mimetype || DEFAULT_MIME_TYPE,
-    storedName: file.filename,
+    mimeType: file.mimeType || DEFAULT_MIME_TYPE,
+    storedName: file.storedName,
   };
 
-  try {
-    documentsRepository.save(document);
-  } catch (error) {
-    // Evita arquivo órfão quando o registro dos metadados falha.
-    await documentsRepository.deleteFile(file.filename).catch(() => {});
-    throw error;
-  }
-
+  documentsRepository.save(document);
   return toPublicDocument(document);
 }
 
